@@ -64,7 +64,7 @@
 		
 		<camel:onException> 
 				<camel:exception>java.lang.Exception</camel:exception>
-				<camel:process ref="myProcessor"/>
+				<camel:to uri="mock:error"/>
 		</camel:onException>
 		
 

@@ -18,6 +18,7 @@ import org.apache.camel.CamelContext;
 import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.test.spring.CamelSpringJUnit4ClassRunner;
 import org.apache.camel.test.spring.DisableJmx;
+import org.apache.log4j.Logger;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.test.annotation.DirtiesContext;
@@ -30,13 +31,15 @@ import org.springframework.test.context.ContextConfiguration;
 @DisableJmx(true)
 public class CamelContextXmlTest {
 
+	private Logger logger = Logger.getLogger(getClass());
+
 	@Resource(name = "helloWorldContext")
 	CamelContext context;
 
 	@Test
 	public void testReturnHello() throws Exception {
 
-		MockEndpoint mockEndpoint = (MockEndpoint) context.getEndpoint("mock:returnHello");
+		MockEndpoint mockEndpoint = (MockEndpoint) context.getEndpoint("mock:error");
 		mockEndpoint.setExpectedMessageCount(1);
 
 		URL url = new URL("http://localhost:9090/rest/prepagas");
@@ -45,25 +48,25 @@ public class CamelContextXmlTest {
 		httpConnection.setRequestProperty("Accept", "application/json");
 
 		if (httpConnection.getResponseCode() != 200) {
-			throw new RuntimeException("HTTP GET Request Failed with Error code : "
+			logger.debug("HTTP GET Request Failed with Error code : "
 					+ httpConnection.getResponseCode());
+		} else {
+
+			BufferedReader responseBuffer = new BufferedReader(new InputStreamReader(
+					(httpConnection.getInputStream())));
+
+			String output;
+			System.out.println("Output from Server:  \n");
+
+			while ((output = responseBuffer.readLine()) != null) {
+				System.out.println(output);
+			}
+
+			httpConnection.disconnect();
 		}
-
-		BufferedReader responseBuffer = new BufferedReader(new InputStreamReader(
-				(httpConnection.getInputStream())));
-
-		String output;
-		System.out.println("Output from Server:  \n");
-
-		while ((output = responseBuffer.readLine()) != null) {
-			System.out.println(output);
-		}
-
-		httpConnection.disconnect();
 
 		mockEndpoint.assertIsSatisfied(100);
 	}
-
 
 	static String readFile(String path, Charset encoding) throws IOException {
 		byte[] encoded = Files.readAllBytes(Paths.get(path));
