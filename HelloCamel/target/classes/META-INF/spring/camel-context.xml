@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- ~ Copyright (C) Red Hat, Inc. ~ http://www.redhat.com ~ ~ Licensed under 
+	the Apache License, Version 2.0 (the "License"); ~ you may not use this file 
+	except in compliance with the License. ~ You may obtain a copy of the License 
+	at ~ ~ http://www.apache.org/licenses/LICENSE-2.0 ~ ~ Unless required by 
+	applicable law or agreed to in writing, software ~ distributed under the 
+	License is distributed on an "AS IS" BASIS, ~ WITHOUT WARRANTIES OR CONDITIONS 
+	OF ANY KIND, either express or implied. ~ See the License for the specific 
+	language governing permissions and ~ limitations under the License. -->
+
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:camel="http://camel.apache.org/schema/spring" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:cxf="http://camel.apache.org/schema/cxf" xmlns:jaxrs="http://cxf.apache.org/jaxrs"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://camel.apache.org/schema/spring http://camel.apache.org/schema/spring/camel-spring.xsd
+	http://camel.apache.org/schema/cxf http://camel.apache.org/schema/cxf/camel-cxf.xsd
+       http://cxf.apache.org/jaxrs http://cxf.apache.org/schemas/jaxrs.xsd
+       http://camel.apache.org/schema/spring http://camel.apache.org/schema/spring/camel-spring.xsd">
+
+	<!-- <camelContext trace="false" xmlns="http://camel.apache.org/schema/spring"> 
+		<route id="HelloWorldRoute"> <from uri="jetty:http://0.0.0.0:8888/hellocamel" 
+		/> <log message="Paso por la ruta Hello" loggingLevel="INFO" /> <transform> 
+		<language language="simple">Hello! now is ${date:now:yyyy-MM-dd}</language> 
+		</transform> </route> </camelContext> -->
+
+	<!-- <cxf:rsServer id="rsServer" address="http://localhost:9090/rest" /> -->
+
+	<cxf:rsServer id="rsServer" address="http://localhost:9090/rest"
+		loggingFeatureEnabled="true" loggingSizeLimit="20" skipFaultLogging="true">
+		<cxf:providers>
+			<bean class="org.codehaus.jackson.jaxrs.JacksonJsonProvider" />
+			<bean
+				class="org.apache.cxf.rs.security.cors.CrossOriginResourceSharingFilter" />
+		</cxf:providers>
+	</cxf:rsServer>
+
+	<bean id="myProcessor" class="com.fluxit.camel.processor.DefaultProcessor" />
+
+	<bean id="setJSONBodyProcessor" class="com.fluxit.camel.processor.SetJSONBodyProcessor" />
+
+	<bean id="helloWorldRouteBuilder" class="com.fluxit.camel.route.HelloWorldRouteBuilder" />
+
+	<camel:camelContext id="helloWorldContext">
+
+		<!-- <camel:routeBuilder ref="helloWorldRouteBuilder" /> -->
+
+		<camel:route id="helloWorldRoute">
+			<camel:from
+				uri="cxfrs:bean?resourceClasses=com.fluxit.service.HelloCamelService&amp;bindingStyle=SimpleConsumer&amp;address=http://localhost:9090/rest" />
+<!-- 			<camel:process ref="myProcessor" /> -->
+			<camel:setHeader headerName="headerRouting">
+				<camel:simple>direct:${header.operationName}${header.CamelHttpMethod}</camel:simple>
+			</camel:setHeader>
+			<camel:process ref="myProcessor" />
+			<camel:to uri="log:before?showHeaders=true" />
+			<camel:routingSlip>
+				<camel:header>headerRouting</camel:header>
+			</camel:routingSlip>
+			<camel:log message="Finalizacion de ruta principal"></camel:log>
+		</camel:route>
+
+		<camel:route>
+			<camel:from uri="direct:returnHelloGET" />
+			<camel:log message="Entro en la ruta hello world" />
+			<camel:to uri="mock:returnHello" />
+			<camel:process ref="myProcessor" />
+			<camel:process ref="setJSONBodyProcessor"/>
+			<camel:process ref="myProcessor" />
+			<camel:unmarshal>
+				<camel:json library="Jackson" unmarshalTypeName="java.util.Map"/>
+			</camel:unmarshal>
+			<camel:process ref="myProcessor" />
+			<camel:setBody>
+				<camel:simple>Hello</camel:simple>
+			</camel:setBody>
+		</camel:route>
+
+		<camel:route>
+			<camel:from uri="direct:returnHelloNameGET" />
+			<camel:log message="Entro en la ruta hello world name" />
+			<camel:to uri="mock:returnHelloName" />
+			<camel:setBody>
+				<camel:simple>Hello Name</camel:simple>
+			</camel:setBody>
+		</camel:route>
+		
+		<camel:route>
+			<camel:from uri="direct:returnHelloPOST" />
+			<camel:log message="Entro en la ruta hello world POR POST" />
+			<camel:process ref="myProcessor" />
+			<camel:to uri="mock:returnHelloNamePOST" />
+			<camel:setBody>
+				<camel:simple>Hola por POST!!!!</camel:simple>
+			</camel:setBody>
+		</camel:route>
+		
+		
+	</camel:camelContext>
+
+
+</beans>
