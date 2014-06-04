@@ -1,23 +1,28 @@
 package com.fusesource.byexample.hellocamel;
 
+import static org.junit.Assert.fail;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.net.URLEncoder;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.annotation.Resource;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 
 import org.apache.camel.CamelContext;
 import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.test.spring.CamelSpringJUnit4ClassRunner;
 import org.apache.camel.test.spring.DisableJmx;
+import org.apache.cxf.jaxrs.client.WebClient;
+import org.codehaus.jackson.jaxrs.JacksonJaxbJsonProvider;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.test.annotation.DirtiesContext;
@@ -32,8 +37,6 @@ public class CamelContextXmlTest {
 
 	@Resource(name = "helloWorldContext")
 	CamelContext context;
-
-	private static String FILE_IN_XML = "src/test/resources/persona.xml";
 
 	@Test
 	public void testReturnHello() throws Exception {
@@ -104,45 +107,20 @@ public class CamelContextXmlTest {
 		MockEndpoint mockEndpoint = (MockEndpoint) context.getEndpoint("mock:returnHelloNamePOST");
 		mockEndpoint.setExpectedMessageCount(1);
 
-		URL url = new URL("http://localhost:9090/rest/hello");
-		HttpURLConnection httpConnection = (HttpURLConnection) url.openConnection();
-		httpConnection.setRequestMethod("POST");
-		httpConnection.setRequestProperty("Accept", "application/json");
+		List<Object> providers = new ArrayList<Object>();
+		providers.add(new JacksonJaxbJsonProvider());
 
-		Map<String, Object> params = new LinkedHashMap<String, Object>();
-		String nombreXML = readFile(FILE_IN_XML, Charset.defaultCharset());
-		params.put("name", nombreXML);
-		
-		StringBuilder postData = new StringBuilder();
-        for (Map.Entry<String,Object> param : params.entrySet()) {
-            if (postData.length() != 0) postData.append('&');
-            postData.append(URLEncoder.encode(param.getKey(), "UTF-8"));
-            postData.append('=');
-            postData.append(URLEncoder.encode(String.valueOf(param.getValue()), "UTF-8"));
-        }
-        
-        byte[] postDataBytes = postData.toString().getBytes("UTF-8");
-        
-        httpConnection.setDoOutput(true);
-        httpConnection.setRequestProperty("Content-Length", String.valueOf(postDataBytes.length));
-        httpConnection.getOutputStream().write(postDataBytes);
-        
-		if (httpConnection.getResponseCode() != 200) {
-			throw new RuntimeException("HTTP GET Request Failed with Error code : "
-					+ httpConnection.getResponseCode());
+		WebClient client = WebClient.create("http://localhost:9090/rest/hello/", providers)
+				.accept("application/json").type("application/json");
+
+		client.header("name", "<persona><nombre>Ramiro</nombre></persona>");
+
+		Response response = client.post(String.class);
+
+		if (response.getStatusInfo().getStatusCode() != 200) {
+			fail("El codigo de respuesta de la invocacion es "
+					+ response.getStatusInfo().getStatusCode());
 		}
-
-		BufferedReader responseBuffer = new BufferedReader(new InputStreamReader(
-				(httpConnection.getInputStream())));
-
-		String output;
-		System.out.println("Output from Server:  \n");
-
-		while ((output = responseBuffer.readLine()) != null) {
-			System.out.println(output);
-		}
-
-		httpConnection.disconnect();
 
 		mockEndpoint.assertIsSatisfied(100);
 

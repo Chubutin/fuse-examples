@@ -21,6 +21,6 @@ public interface HelloCamelService {
 	
 	@POST
 	@Produces("application/json")
-	String returnHello(@HeaderParam(value = "name") String name);
+	String returnHello(@HeaderParam(value = "body") String name);
 
 }
