@@ -18,6 +18,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import org.apache.camel.CamelContext;
+import org.apache.camel.component.http.HttpMethods;
 import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.test.spring.CamelSpringJUnit4ClassRunner;
 import org.apache.camel.test.spring.DisableJmx;
@@ -111,11 +112,11 @@ public class CamelContextXmlTest {
 		providers.add(new JacksonJaxbJsonProvider());
 
 		WebClient client = WebClient.create("http://localhost:9090/rest/hello/", providers)
-				.accept("application/json").type("application/json");
+				.accept("application/json").type("application/xml");
 
 		client.header("name", "<persona><nombre>Ramiro</nombre></persona>");
 
-		Response response = client.post(String.class);
+		Response response = client.invoke("POST", "{\"password\":\"1ad1ad\",\"username\":11111111}");
 
 		if (response.getStatusInfo().getStatusCode() != 200) {
 			fail("El codigo de respuesta de la invocacion es "

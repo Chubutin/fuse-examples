@@ -1,14 +1,16 @@
 package com.fluxit.service;
 
 import javax.ws.rs.GET;
+import javax.ws.rs.HeaderParam;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 
 @Path(value = "/prepagas")
 public interface CamelInsertService {
 
-	@GET
+	@POST
 	@Produces("application/json")
-	String justOneInsert();
+	String justOneInsert(String body, @HeaderParam(value = "headerName") String headerName);
 
 }

@@ -1,24 +1,22 @@
 package com.fusesource.byexample.hellocamel;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.net.URLEncoder;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.annotation.Resource;
+import javax.ws.rs.core.Response;
 
 import org.apache.camel.CamelContext;
 import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.test.spring.CamelSpringJUnit4ClassRunner;
 import org.apache.camel.test.spring.DisableJmx;
+import org.apache.cxf.jaxrs.client.WebClient;
 import org.apache.log4j.Logger;
+import org.codehaus.jackson.jaxrs.JacksonJaxbJsonProvider;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.test.annotation.DirtiesContext;
@@ -27,7 +25,8 @@ import org.springframework.test.context.ContextConfiguration;
 
 @RunWith(CamelSpringJUnit4ClassRunner.class)
 @DirtiesContext(classMode = ClassMode.AFTER_EACH_TEST_METHOD)
-@ContextConfiguration({ "classpath:META-INF/spring/camel-context.xml" })
+@ContextConfiguration({ "classpath:spring-context/test-context.xml",
+		"classpath:spring-import/camel-context.xml" })
 @DisableJmx(true)
 public class CamelContextXmlTest {
 
@@ -37,33 +36,23 @@ public class CamelContextXmlTest {
 	CamelContext context;
 
 	@Test
-	public void testReturnHello() throws Exception {
+	public void testInsert() throws Exception {
 
-		MockEndpoint mockEndpoint = (MockEndpoint) context.getEndpoint("mock:error");
+		MockEndpoint mockEndpoint = (MockEndpoint) context.getEndpoint("mock:returnHello");
 		mockEndpoint.setExpectedMessageCount(1);
 
-		URL url = new URL("http://localhost:9090/rest/prepagas");
-		HttpURLConnection httpConnection = (HttpURLConnection) url.openConnection();
-		httpConnection.setRequestMethod("GET");
-		httpConnection.setRequestProperty("Accept", "application/json");
+		List<Object> providers = new ArrayList<Object>();
+		providers.add(new JacksonJaxbJsonProvider());
 
-		if (httpConnection.getResponseCode() != 200) {
-			logger.debug("HTTP GET Request Failed with Error code : "
-					+ httpConnection.getResponseCode());
-		} else {
+		WebClient client = WebClient.create("http://localhost:9090/rest/prepagas", providers)
+				.accept("application/json").type("application/xml");
 
-			BufferedReader responseBuffer = new BufferedReader(new InputStreamReader(
-					(httpConnection.getInputStream())));
+		client.header("headerName", "header en JSON");
 
-			String output;
-			System.out.println("Output from Server:  \n");
+		Response response = client
+				.post("<tarea><nombreTarea>Tarea de prueba 10</nombreTarea><nombreProceso>Proceso de Prueba 10</nombreProceso></tarea>");
 
-			while ((output = responseBuffer.readLine()) != null) {
-				System.out.println(output);
-			}
-
-			httpConnection.disconnect();
-		}
+		logger.debug("Estado de Respuesta: " + response.getStatus());
 
 		mockEndpoint.assertIsSatisfied(100);
 	}

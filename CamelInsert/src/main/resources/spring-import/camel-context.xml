@@ -16,13 +16,8 @@
        http://cxf.apache.org/jaxrs http://cxf.apache.org/schemas/jaxrs.xsd
        http://camel.apache.org/schema/spring http://camel.apache.org/schema/spring/camel-spring.xsd">
 
-	<!-- <camelContext trace="false" xmlns="http://camel.apache.org/schema/spring"> 
-		<route id="HelloWorldRoute"> <from uri="jetty:http://0.0.0.0:8888/hellocamel" 
-		/> <log message="Paso por la ruta Hello" loggingLevel="INFO" /> <transform> 
-		<language language="simple">Hello! now is ${date:now:yyyy-MM-dd}</language> 
-		</transform> </route> </camelContext> -->
 
-	<!-- <cxf:rsServer id="rsServer" address="http://localhost:9090/rest" /> -->
+
 
 	<cxf:rsServer id="rsServer" address="http://localhost:9090/rest"
 		loggingFeatureEnabled="true" loggingSizeLimit="20" skipFaultLogging="true">
@@ -36,9 +31,9 @@
 	<bean id="sybase"
 		class="org.springframework.jdbc.datasource.SimpleDriverDataSource">
 		<property name="driverClass" value="com.sybase.jdbc3.jdbc.SybDriver" />
-		<property name="url" value="jdbc:sybase:Tds:11.0.1.84:4100/afilmed" />
-		<property name="username" value="svc_afiliados" />
-		<property name="password" value="devafiliados01" />
+		<property name="url" value="jdbc:sybase:Tds:11.0.1.84:4100/gps_smg" />
+		<property name="username" value="crm_app" />
+		<property name="password" value="sybaseep" />
 	</bean>
 
 	<bean id="mysql" class="org.apache.camel.component.sql.SqlComponent">
@@ -52,21 +47,32 @@
 
 	<bean id="myProcessor" class="com.fluxit.camel.processor.DefaultProcessor" />
 
+	<bean id="errorProcessor" class="com.fluxit.camel.processor.ErrorProcessor" />
+
 	<bean id="setJSONBodyProcessor" class="com.fluxit.camel.processor.SetJSONBodyProcessor" />
 
 	<bean id="helloWorldRouteBuilder" class="com.fluxit.camel.route.HelloWorldRouteBuilder" />
 
 	<bean id="processorInsertSQLStatement" class="com.fluxit.camel.processor.ProcessorInsertSQLStatement" />
+	
+	<bean id="processorSelect" class="com.fluxit.camel.processor.ProcessorSelectSQLStatement" />
+
+	<bean id="processorSecondInsertSQLStatement"
+		class="com.fluxit.camel.processor.ProcessorInsertSecondSQLStatement" />
 
 	<camel:camelContext id="helloWorldContext">
 
+		<camel:propertyPlaceholder id="camelProperties"
+			location="ref:properties" />
+
 		<!-- <camel:routeBuilder ref="helloWorldRouteBuilder" /> -->
-		
-		<camel:onException> 
-				<camel:exception>java.lang.Exception</camel:exception>
-				<camel:to uri="mock:error"/>
+
+		<camel:onException>
+			<camel:exception>java.lang.Exception</camel:exception>
+			<camel:to uri="mock:error" />
+			<camel:process ref="errorProcessor" />
 		</camel:onException>
-		
+
 
 		<camel:route id="helloWorldRoute">
 			<camel:from
@@ -75,6 +81,12 @@
 			<camel:setHeader headerName="headerRouting">
 				<camel:simple>direct:${header.operationName}${header.CamelHttpMethod}</camel:simple>
 			</camel:setHeader>
+			<camel:setProperty propertyName="nombreTarea">
+				<camel:xpath resultType="java.lang.String">tarea/nombreTarea</camel:xpath>
+			</camel:setProperty>
+			<camel:setProperty propertyName="nombreProceso">
+				<camel:xpath resultType="java.lang.String">tarea/nombreProceso</camel:xpath>
+			</camel:setProperty>
 			<camel:process ref="myProcessor" />
 			<camel:to uri="log:before?showHeaders=true" />
 			<camel:routingSlip>
@@ -84,12 +96,17 @@
 		</camel:route>
 
 		<camel:route>
-				<camel:from uri="direct:justOneInsertGET" />
-				<camel:log message="Entro en la ruta hello world" />
-				<camel:to uri="mock:returnHello" />
-				<camel:process ref="processorInsertSQLStatement" />
-				<camel:to uri="sql:${header.CamelSqlQuery}?dataSource=sybase" />
-				<camel:process ref="myProcessor" />
+			<camel:from uri="direct:justOneInsertPOST" />
+			<camel:transacted/>
+			<camel:log message="Entro en la ruta hello world" />
+			<camel:process ref="processorInsertSQLStatement" />
+			<camel:to uri="sql:${header.CamelSqlQuery}?dataSource=sybase" />
+			<camel:process ref="processorSelect" />
+			<camel:to uri="sql:${header.CamelSqlQuery}?dataSource=sybase" />
+			<camel:process ref="processorSecondInsertSQLStatement" />
+			<camel:to uri="sql:${header.CamelSqlQuery}?dataSource=sybase" />
+			<camel:process ref="myProcessor" />
+			<camel:to uri="mock:returnHello" />
 		</camel:route>
 
 

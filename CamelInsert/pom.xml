@@ -72,9 +72,13 @@
 				<configuration>
 					<instructions>
 						<Import-Package>
-							*,
 							org.codehaus.jackson.jaxrs;resolution:=optional,
 							org.apache.cxf.rs.security.cors;resolution:=optional,
+							com.sybase.jdbc3.jdbc;resolution:=optional,
+							org.springframework.jdbc.datasource;resolution:=optional,
+							org.apache.camel.component.sql;resolution:=optional,
+							org.apache.log4j;resolution:=optional,
+							*,
 						</Import-Package>
 					</instructions>
 				</configuration>
@@ -213,14 +217,14 @@
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-log4j12</artifactId>
 			<version>${slf4j.version}</version>
-			<scope>compile</scope>
+			<scope>provided</scope>
 		</dependency>
 
 		<dependency>
 			<groupId>log4j</groupId>
 			<artifactId>log4j</artifactId>
 			<version>1.2.17</version>
-			<scope>test</scope>
+			<scope>provided</scope>
 		</dependency>
 
 	</dependencies>
