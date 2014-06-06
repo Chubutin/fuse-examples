@@ -13,25 +13,13 @@
 	xmlns:cxf="http://camel.apache.org/schema/cxf" xmlns:jaxrs="http://cxf.apache.org/jaxrs"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://camel.apache.org/schema/spring http://camel.apache.org/schema/spring/camel-spring.xsd
 	http://camel.apache.org/schema/cxf http://camel.apache.org/schema/cxf/camel-cxf.xsd
-       http://cxf.apache.org/jaxrs http://cxf.apache.org/schemas/jaxrs.xsd
-       http://camel.apache.org/schema/spring http://camel.apache.org/schema/spring/camel-spring.xsd">
-
-
-
-
-	<cxf:rsServer id="rsServer" address="http://localhost:9090/rest"
-		loggingFeatureEnabled="true" loggingSizeLimit="20" skipFaultLogging="true">
-		<cxf:providers>
-			<bean class="org.codehaus.jackson.jaxrs.JacksonJsonProvider" />
-			<bean
-				class="org.apache.cxf.rs.security.cors.CrossOriginResourceSharingFilter" />
-		</cxf:providers>
-	</cxf:rsServer>
+    http://cxf.apache.org/jaxrs http://cxf.apache.org/schemas/jaxrs.xsd
+    http://camel.apache.org/schema/spring http://camel.apache.org/schema/spring/camel-spring.xsd">
 
 	<bean id="sybase"
 		class="org.springframework.jdbc.datasource.SimpleDriverDataSource">
 		<property name="driverClass" value="com.sybase.jdbc3.jdbc.SybDriver" />
-		<property name="url" value="jdbc:sybase:Tds:11.0.1.84:4100/gps_smg" />
+		<property name="url" value="jdbc:sybase:Tds:11.0.1.84:4100/crm_smg" />
 		<property name="username" value="crm_app" />
 		<property name="password" value="sybaseep" />
 	</bean>
@@ -45,27 +33,27 @@
 		<property name="dataSource" ref="sybase" />
 	</bean>
 
-	<bean id="myProcessor" class="com.fluxit.camel.processor.DefaultProcessor" />
+	<bean id="myProcessor" class="com.smg.camel.processor.DefaultProcessor" />
 
-	<bean id="errorProcessor" class="com.fluxit.camel.processor.ErrorProcessor" />
+	<bean id="errorProcessor" class="com.smg.camel.processor.ErrorProcessor" />
 
-	<bean id="setJSONBodyProcessor" class="com.fluxit.camel.processor.SetJSONBodyProcessor" />
+	<bean id="setJSONBodyProcessor" class="com.smg.camel.processor.SetJSONBodyProcessor" />
 
-	<bean id="helloWorldRouteBuilder" class="com.fluxit.camel.route.HelloWorldRouteBuilder" />
+	<bean id="helloWorldRouteBuilder" class="com.smg.camel.route.HelloWorldRouteBuilder" />
 
-	<bean id="processorInsertSQLStatement" class="com.fluxit.camel.processor.ProcessorInsertSQLStatement" />
-	
-	<bean id="processorSelect" class="com.fluxit.camel.processor.ProcessorSelectSQLStatement" />
+	<bean id="processorInsertSQLStatement" class="com.smg.camel.processor.ProcessorInsertSQLStatement" />
 
 	<bean id="processorSecondInsertSQLStatement"
-		class="com.fluxit.camel.processor.ProcessorInsertSecondSQLStatement" />
+		class="com.smg.camel.processor.ProcessorInsertSecondSQLStatement" />
+
+	<bean id="forcedExceptionBean" class="java.lang.IllegalArgumentException">
+		<constructor-arg index="0" value="No existe ese CONTENT-TYPE" />
+	</bean>
 
 	<camel:camelContext id="helloWorldContext">
 
 		<camel:propertyPlaceholder id="camelProperties"
 			location="ref:properties" />
-
-		<!-- <camel:routeBuilder ref="helloWorldRouteBuilder" /> -->
 
 		<camel:onException>
 			<camel:exception>java.lang.Exception</camel:exception>
@@ -73,21 +61,14 @@
 			<camel:process ref="errorProcessor" />
 		</camel:onException>
 
-
-		<camel:route id="helloWorldRoute">
+		<camel:route id="camelInsertMainRoute">
 			<camel:from
-				uri="cxfrs:bean?resourceClasses=com.fluxit.service.CamelInsertService&amp;bindingStyle=SimpleConsumer&amp;address=http://localhost:9090/rest" />
+				uri="cxfrs:bean?resourceClasses=com.smg.service.CamelInsertService&amp;bindingStyle=SimpleConsumer&amp;address={{http.address.path}}" />
 			<!-- <camel:process ref="myProcessor" /> -->
 			<camel:setHeader headerName="headerRouting">
 				<camel:simple>direct:${header.operationName}${header.CamelHttpMethod}</camel:simple>
 			</camel:setHeader>
-			<camel:setProperty propertyName="nombreTarea">
-				<camel:xpath resultType="java.lang.String">tarea/nombreTarea</camel:xpath>
-			</camel:setProperty>
-			<camel:setProperty propertyName="nombreProceso">
-				<camel:xpath resultType="java.lang.String">tarea/nombreProceso</camel:xpath>
-			</camel:setProperty>
-			<camel:process ref="myProcessor" />
+
 			<camel:to uri="log:before?showHeaders=true" />
 			<camel:routingSlip>
 				<camel:header>headerRouting</camel:header>
@@ -95,23 +76,59 @@
 			<camel:log message="Finalizacion de ruta principal"></camel:log>
 		</camel:route>
 
-		<camel:route>
-			<camel:from uri="direct:justOneInsertPOST" />
-			<camel:transacted/>
+
+
+		<camel:route id="taskPOSTRoute">
+			<camel:from uri="direct:taskPOST" />
+
+			<camel:choice>
+				<camel:when>
+					<camel:simple>${in.header.content-type} == 'application/json'</camel:simple>
+					<camel:to uri="direct:processJSONPayload" />
+				</camel:when>
+				<camel:when>
+					<camel:simple>${in.header.content-type} == 'application/xml'</camel:simple>
+					<camel:to uri="direct:processXMLPayload" />
+				</camel:when>
+				<camel:otherwise>
+					<camel:throwException ref="forcedExceptionBean" />
+				</camel:otherwise>
+
+			</camel:choice>
+
+			<!-- ABRO LA TRANSACCION, TODO DE AQUI PARA ABAJO ESTA DENTRO DE LA TX -->
+			<!-- <camel:transacted /> -->
+
 			<camel:log message="Entro en la ruta hello world" />
-			<camel:process ref="processorInsertSQLStatement" />
-			<camel:to uri="sql:${header.CamelSqlQuery}?dataSource=sybase" />
-			<camel:process ref="processorSelect" />
-			<camel:to uri="sql:${header.CamelSqlQuery}?dataSource=sybase" />
-			<camel:process ref="processorSecondInsertSQLStatement" />
-			<camel:to uri="sql:${header.CamelSqlQuery}?dataSource=sybase" />
+			<!-- <camel:process ref="processorInsertSQLStatement" /> <camel:to uri="sql:${header.CamelSqlQuery}?dataSource=sybase" 
+				/> <camel:process ref="processorSecondInsertSQLStatement" /> <camel:to uri="sql:${header.CamelSqlQuery}?dataSource=sybase" 
+				/> -->
 			<camel:process ref="myProcessor" />
+
+<!-- 			<camel:to uri="http://localhost:2121/smg/" /> -->
+
+
 			<camel:to uri="mock:returnHello" />
 		</camel:route>
 
+		<camel:route id="routeProcessJSON">
+			<camel:from uri="direct:processJSONPayload" />
+			<camel:unmarshal>
+				<camel:json library="Jackson" unmarshalTypeName="java.util.Map" />
+			</camel:unmarshal>
+			<camel:setProperty propertyName="jsonBody">
+				<camel:simple>${in.body}</camel:simple>
+			</camel:setProperty>
+		</camel:route>
+
+		<camel:route id="routeprocessXML">
+			<camel:from uri="direct:processXMLPayload" />
+			<camel:process ref="xStreamProcessor" />
+		</camel:route>
 
 
 	</camel:camelContext>
-
+	
+	<bean id="xStreamProcessor" class="com.smg.camel.processor.XStreamProcessor"/>
 
 </beans>

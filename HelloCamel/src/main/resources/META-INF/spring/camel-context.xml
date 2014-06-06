@@ -16,28 +16,11 @@
        http://cxf.apache.org/jaxrs http://cxf.apache.org/schemas/jaxrs.xsd
        http://camel.apache.org/schema/spring http://camel.apache.org/schema/spring/camel-spring.xsd">
 
-	<!-- <camelContext trace="false" xmlns="http://camel.apache.org/schema/spring"> 
-		<route id="HelloWorldRoute"> <from uri="jetty:http://0.0.0.0:8888/hellocamel" 
-		/> <log message="Paso por la ruta Hello" loggingLevel="INFO" /> <transform> 
-		<language language="simple">Hello! now is ${date:now:yyyy-MM-dd}</language> 
-		</transform> </route> </camelContext> -->
+	<bean id="myProcessor" class="com.smg.camel.processor.DefaultProcessor" />
 
-	<!-- <cxf:rsServer id="rsServer" address="http://localhost:9090/rest" /> -->
+	<bean id="setJSONBodyProcessor" class="com.smg.camel.processor.SetJSONBodyProcessor" />
 
-	<cxf:rsServer id="rsServer" address="http://localhost:9090/rest"
-		loggingFeatureEnabled="true" loggingSizeLimit="20" skipFaultLogging="true">
-		<cxf:providers>
-			<bean class="org.codehaus.jackson.jaxrs.JacksonJsonProvider" />
-			<bean
-				class="org.apache.cxf.rs.security.cors.CrossOriginResourceSharingFilter" />
-		</cxf:providers>
-	</cxf:rsServer>
-
-	<bean id="myProcessor" class="com.fluxit.camel.processor.DefaultProcessor" />
-
-	<bean id="setJSONBodyProcessor" class="com.fluxit.camel.processor.SetJSONBodyProcessor" />
-
-	<bean id="helloWorldRouteBuilder" class="com.fluxit.camel.route.HelloWorldRouteBuilder" />
+	<bean id="helloWorldRouteBuilder" class="com.smg.camel.route.HelloWorldRouteBuilder" />
 
 	<camel:camelContext id="helloWorldContext">
 
@@ -45,7 +28,7 @@
 
 		<camel:route id="helloWorldRoute">
 			<camel:from
-				uri="cxfrs:bean?resourceClasses=com.fluxit.service.HelloCamelService&amp;bindingStyle=SimpleConsumer&amp;address=http://localhost:9090/rest" />
+				uri="cxfrs:bean?resourceClasses=com.smg.service.HelloCamelService&amp;bindingStyle=SimpleConsumer&amp;address=http://localhost:9090/rest" />
 <!-- 			<camel:process ref="myProcessor" /> -->
 			<camel:setHeader headerName="headerRouting">
 				<camel:simple>direct:${header.operationName}${header.CamelHttpMethod}</camel:simple>

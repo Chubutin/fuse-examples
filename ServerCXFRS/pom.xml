@@ -14,7 +14,7 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>com.smg.fuseByExample</groupId>
-	<artifactId>HelloCamel</artifactId>
+	<artifactId>ServerCXFRS</artifactId>
 	<version>1.0.0</version>
 
 	<!-- Tells Maven to create an OSGi bundle; must be paired with maven-bundle-plugin 
@@ -72,9 +72,10 @@
 				<configuration>
 					<instructions>
 						<Import-Package>
-							*,
 							org.codehaus.jackson.jaxrs;resolution:=optional,
 							org.apache.cxf.rs.security.cors;resolution:=optional,
+							org.apache.log4j;resolution:=optional,
+							*,
 						</Import-Package>
 					</instructions>
 				</configuration>
@@ -110,6 +111,7 @@
 		<!-- <dependency> <groupId>org.eclipse.jetty.aggregate</groupId> <artifactId>jetty-all-server</artifactId> 
 			<scope>test</scope> </dependency> -->
 
+
 		<dependency>
 			<groupId>org.apache.camel</groupId>
 			<artifactId>camel-core</artifactId>
@@ -132,25 +134,6 @@
 			<version>${camel.version}</version>
 		</dependency>
 
-		<dependency>
-			<groupId>org.apache.camel</groupId>
-			<artifactId>camel-test</artifactId>
-			<version>${camel.version}</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.camel</groupId>
-			<artifactId>camel-test-spring</artifactId>
-			<version>${camel.version}</version>
-			<scope>test</scope>
-		</dependency>
-
-		<dependency>
-			<groupId>org.apache.camel</groupId>
-			<artifactId>camel-jackson</artifactId>
-			<version>${camel.version}</version>
-			<scope>provided</scope>
-		</dependency>
 
 
 		<dependency>
@@ -200,9 +183,9 @@
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-log4j12</artifactId>
 			<version>${slf4j.version}</version>
-			<scope>compile</scope>
+			<scope>provided</scope>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>log4j</groupId>
 			<artifactId>log4j</artifactId>

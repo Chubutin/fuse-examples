@@ -28,6 +28,5 @@
 		properties-ref="properties" />
 
 	<import resource="../../spring-import/camel-context.xml" />
-
-
+	
 </beans>

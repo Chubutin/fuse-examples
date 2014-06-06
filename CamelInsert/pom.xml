@@ -13,7 +13,7 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
-	<groupId>com.fluxit.fuseByExample</groupId>
+	<groupId>com.smg.fuseByExample</groupId>
 	<artifactId>CamelInsert</artifactId>
 	<version>1.0.0</version>
 
@@ -113,6 +113,19 @@
 
 		<!-- <dependency> <groupId>org.eclipse.jetty.aggregate</groupId> <artifactId>jetty-all-server</artifactId> 
 			<scope>test</scope> </dependency> -->
+
+		<dependency>
+			<groupId>com.googlecode.json-simple</groupId>
+			<artifactId>json-simple</artifactId>
+			<version>1.1</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.thoughtworks.xstream</groupId>
+			<artifactId>xstream</artifactId>
+			<version>1.4.7</version>
+		</dependency>
+
 
 		<dependency>
 			<groupId>com.sybase</groupId>
