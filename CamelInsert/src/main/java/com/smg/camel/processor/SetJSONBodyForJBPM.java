@@ -1,5 +1,6 @@
 package com.smg.camel.processor;
 
+import java.util.Date;
 import java.util.Map;
 
 import org.apache.camel.Exchange;
@@ -13,10 +14,10 @@ import org.json.simple.JSONObject;
  */
 public class SetJSONBodyForJBPM implements Processor {
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public void process(Exchange exchange) throws Exception {
 
-		@SuppressWarnings("unchecked")
 		Map<String, Object> mapBody = exchange.getProperty("mapBody",Map.class );
 		
 		JSONObject process = new JSONObject();

@@ -21,18 +21,9 @@
     http://www.springframework.org/schema/osgi http://www.springframework.org/schema/osgi/spring-osgi.xsd
     http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
 
-	<osgix:cm-properties id="properties" persistent-id="com.smg.esb.service">
-	</osgix:cm-properties>
+	<osgi:service id="consultaService" ref="consultaServiceImpl" interface="com.smg.esb.bo.service.consulta.ConsultaService" />
 
-	<context:property-placeholder
-		properties-ref="properties" />
-
-	<import resource="../../spring-import/beans-context.xml" />
-	<import resource="../../spring-import/camel-context.xml" />
-
-	<!-- http://docs.spring.io/osgi/docs/2.0.0.M1/reference/html/service-registry.html -->
-	<osgi:reference id="sgmConsultaService"
-		interface="com.smg.esb.bo.service.consulta.ConsultaService" />
+	<bean id="consultaServiceImpl" class="com.smg.esb.bo.service.consulta.impl.ConsultaServiceImpl"/>
 
 
 </beans>

@@ -24,5 +24,10 @@
 		</cxf:providers>
 	</cxf:rsServer>
 
+	<!-- DECLARO ESTE BEAN YA QUE LO TENDRÍA QUE TRAER EL CONTEXTO OSGi PARA 
+		PRODUCCION PERO NO EXISTE EN TEST -->
+	<bean id="sgmConsultaService"
+		class="com.smg.esb.bo.service.consulta.impl.ConsultaServiceImpl" />
+
 
 </beans>

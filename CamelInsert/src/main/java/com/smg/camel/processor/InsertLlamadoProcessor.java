@@ -10,8 +10,7 @@ import org.apache.log4j.Logger;
 /**
  * 
  * @author Ramiro Pugh
- * @company www.fluxit.com.ar
- * @email ramiro.pugh@fluxit.com.ar
+ * @email rampugh@gmail.com
  * 
  */
 public class InsertLlamadoProcessor implements Processor {

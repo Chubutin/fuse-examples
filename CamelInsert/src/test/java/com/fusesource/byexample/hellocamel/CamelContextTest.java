@@ -24,7 +24,7 @@ import org.springframework.test.context.ContextConfiguration;
 @RunWith(CamelSpringJUnit4ClassRunner.class)
 @DirtiesContext(classMode = ClassMode.AFTER_EACH_TEST_METHOD)
 @ContextConfiguration({ "classpath:spring-context/test-context.xml",
-		"classpath:spring-import/camel-context.xml" })
+		"classpath:spring-import/camel-context.xml", "classpath:spring-import/beans-context.xml" })
 @DisableJmx(true)
 public class CamelContextTest {
 
@@ -33,7 +33,7 @@ public class CamelContextTest {
 	@Value(value = "${http.address.path}")
 	String serviceAddress;
 
-	@Resource(name = "helloWorldContext")
+	@Resource(name = "camelInsertContext")
 	CamelContext context;
 
 	// @Test
@@ -56,6 +56,7 @@ public class CamelContextTest {
 		mockEndpoint.assertIsSatisfied(100);
 	}
 
+	@SuppressWarnings("unchecked")
 	@Test
 	public void testInsertWithJSON() throws InterruptedException {
 
@@ -67,7 +68,7 @@ public class CamelContextTest {
 
 		WebClient client = WebClient.create(serviceAddress + "/tasks", providers)
 				.accept("application/json").type("application/json");
-		
+
 		client.header("Connection", "Keep-Alive");
 		client.header("headerName", "header en JSON");
 
@@ -79,11 +80,11 @@ public class CamelContextTest {
 		jObject.put("inte", new Integer(1));
 		jObject.put("registradoPor", "Chubutin");
 		jObject.put("motivoId", new Integer(30));
-//		jObject.put("llamadoId", null);
+		// jObject.put("llamadoId", null);
 		jObject.put("workflow", new Integer(1));
 		jObject.put("observacion", "Desde Fuse con los chicos!");
 		jObject.put("sucursalId", new Integer(10));
-
+		
 		Response response = client.post(jObject);
 
 		logger.debug("Estado de Respuesta: " + response.getStatus());

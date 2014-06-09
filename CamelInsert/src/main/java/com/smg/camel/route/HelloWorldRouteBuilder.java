@@ -2,7 +2,6 @@ package com.smg.camel.route;
 
 import java.util.Map;
 
-import org.apache.camel.Processor;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.model.dataformat.JsonLibrary;
 
@@ -11,7 +10,7 @@ public class HelloWorldRouteBuilder extends RouteBuilder {
 	@Override
 	public void configure() throws Exception {
 
-		from("cxfrs:bean?resourceClasses=com.fluxit.service.HelloCamelService&bindingStyle=SimpleConsumer&address=http://localhost:9090/rest")
+		from("cxfrs:bean?resourceClasses=com.smg.service.HelloCamelService&bindingStyle=SimpleConsumer&address=http://localhost:9090/rest")
 				.setHeader("headerRouting",
 						simple("direct:${header.operationName}"))
 				.routingSlip(
