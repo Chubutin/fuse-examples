@@ -5,6 +5,7 @@ import java.util.Map;
 import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
 import org.apache.camel.component.sql.SqlConstants;
+import org.apache.log4j.Logger;
 
 /**
  * 
@@ -13,23 +14,31 @@ import org.apache.camel.component.sql.SqlConstants;
  * @email ramiro.pugh@fluxit.com.ar
  * 
  */
-public class ProcessorInsertSQLStatement implements Processor {
+public class InsertLlamadoProcessor implements Processor {
+
+	Logger logger = Logger.getLogger(getClass());
 
 	@SuppressWarnings("unchecked")
 	@Override
 	public void process(Exchange exchange) throws Exception {
 
-		Map<String, Object> jsonBody = exchange.getProperty("jsonBody", Map.class);
+		logger.debug("Invocando al processor de insercion de llamado");
 
-		Integer prepaga = (Integer) jsonBody.get("prepaga");
-		String contra = (String) jsonBody.get("contra");
-		Integer finalizado = (Integer) jsonBody.get("finalizado");
+		Map<String, Object> mapBody = exchange.getProperty("mapBody", Map.class);
+
+		// TODO ojo con los casts!
+
+		Integer prepaga = (Integer) mapBody.get("prepaga");
+		String contra = (String) mapBody.get("contra");
+		Integer finalizado = (Integer) mapBody.get("finalizado");
 
 		String query = "INSERT INTO CRM_LLAMADOS (PREPAGA,CONTRA,FINALIZADO) VALUES (" + prepaga
 				+ ", '" + contra + "', " + finalizado + ")" + " Select @@identity";
 
-		System.out.println("SQL QUERY: " + query);
-
+		logger.debug("SQL QUERY: " + query);
+		
+		exchange.setOut(exchange.getIn());
+		
 		exchange.getOut().setHeader(SqlConstants.SQL_QUERY, query);
 
 	}

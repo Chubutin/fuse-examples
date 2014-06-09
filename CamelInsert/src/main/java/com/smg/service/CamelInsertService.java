@@ -19,5 +19,11 @@ public interface CamelInsertService {
 	@Path("/{name}")
 	@Produces("application/json")
 	Object task();
+	
+	
+	@GET
+	@Produces("application/json")
+	Object taskTest();
+	
 
 }

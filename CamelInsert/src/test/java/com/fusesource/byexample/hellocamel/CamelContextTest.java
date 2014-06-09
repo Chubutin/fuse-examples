@@ -36,7 +36,7 @@ public class CamelContextTest {
 	@Resource(name = "helloWorldContext")
 	CamelContext context;
 
-	 @Test
+	// @Test
 	public void testInsertWithXML() throws Exception {
 
 		MockEndpoint mockEndpoint = (MockEndpoint) context.getEndpoint("mock:returnHello");
@@ -48,10 +48,8 @@ public class CamelContextTest {
 		WebClient client = WebClient.create(serviceAddress + "/tasks", providers)
 				.accept("application/json").type("application/xml");
 
-		client.header("headerName", "header en JSON");
-
 		Response response = client
-				.post("<llamado><prepaga>2</prepaga><contra>2444</contra></llamado>");
+				.post("<llamado><prepaga>2</prepaga><contra>2444</contra><finalizado>0</finalizado><inte>1</inte><registradoPor>chubutin</registradoPor><motivoId>43</motivoId></llamado>");
 
 		logger.debug("Estado de Respuesta: " + response.getStatus());
 
@@ -69,25 +67,24 @@ public class CamelContextTest {
 
 		WebClient client = WebClient.create(serviceAddress + "/tasks", providers)
 				.accept("application/json").type("application/json");
-
+		
+		client.header("Connection", "Keep-Alive");
 		client.header("headerName", "header en JSON");
-
-		// Response response = client
-		// .post("<persona><nombre>Ramiro</nombre></persona>");
 
 		JSONObject jObject = new JSONObject();
 
 		jObject.put("prepaga", new Integer(2));
-		jObject.put("contra", "2555");
+		jObject.put("contra", "2444");
 		jObject.put("finalizado", new Integer(0));
 		jObject.put("inte", new Integer(1));
-		jObject.put("registradoPor", "chubutin");
-		jObject.put("motivoId", new Integer(43));
+		jObject.put("registradoPor", "Chubutin");
+		jObject.put("motivoId", new Integer(30));
+//		jObject.put("llamadoId", null);
+		jObject.put("workflow", new Integer(1));
+		jObject.put("observacion", "Desde Fuse con los chicos!");
+		jObject.put("sucursalId", new Integer(10));
 
 		Response response = client.post(jObject);
-
-		// Response response = client
-		// .post("{\"prepaga\":2,\"contra\":\"2555\",\"finalizado\":0,\"inte\":1,\"registradoPor\":\"chubutin\",\"motivoId\":43}");
 
 		logger.debug("Estado de Respuesta: " + response.getStatus());
 

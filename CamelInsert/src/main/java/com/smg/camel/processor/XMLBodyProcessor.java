@@ -11,9 +11,9 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-public class XStreamProcessor implements Processor {
+public class XMLBodyProcessor implements Processor {
 
-	static Logger logger = Logger.getLogger(XStreamProcessor.class);
+	static Logger logger = Logger.getLogger(XMLBodyProcessor.class);
 
 	@Override
 	public void process(Exchange exchange) throws Exception {
@@ -26,7 +26,7 @@ public class XStreamProcessor implements Processor {
 
 		recorrerRamaDOM(body, map);
 		
-		exchange.getOut().setBody(map);
+		exchange.setProperty("mapBody", map);
 
 	}
 

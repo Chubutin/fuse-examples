@@ -24,14 +24,20 @@
 		<property name="password" value="sybaseep" />
 	</bean>
 
+	<!-- COMPONENTE SQL DE CAMEL -->
+
 	<bean id="mysql" class="org.apache.camel.component.sql.SqlComponent">
 		<property name="dataSource" ref="sybase" />
 	</bean>
+
+	<!-- TRANSACTION MANAGER DE SPRING QUE USA EL COMPONENTE SQL DE CAMEL -->
 
 	<bean id="txManager"
 		class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
 		<property name="dataSource" ref="sybase" />
 	</bean>
+
+	<!-- DEFINICION DE PROCESSORS -->
 
 	<bean id="myProcessor" class="com.smg.camel.processor.DefaultProcessor" />
 
@@ -41,14 +47,23 @@
 
 	<bean id="helloWorldRouteBuilder" class="com.smg.camel.route.HelloWorldRouteBuilder" />
 
-	<bean id="processorInsertSQLStatement" class="com.smg.camel.processor.ProcessorInsertSQLStatement" />
+	<bean id="insertLlamadoProcessor" class="com.smg.camel.processor.InsertLlamadoProcessor" />
 
-	<bean id="processorSecondInsertSQLStatement"
-		class="com.smg.camel.processor.ProcessorInsertSecondSQLStatement" />
+	<bean id="insertWorkflowProcessor" class="com.smg.camel.processor.InsertWorkflowProcessor" />
+
+	<bean id="insertEtapasProcessor" class="com.smg.camel.processor.InsertEtapaProcessor" />
+
+	<bean id="insertEtapasMaxProcessor" class="com.smg.camel.processor.InsertEtapaMaxProcessor" />
+
+	<bean id="xmlBodyProcessor" class="com.smg.camel.processor.XMLBodyProcessor" />
 
 	<bean id="forcedExceptionBean" class="java.lang.IllegalArgumentException">
 		<constructor-arg index="0" value="No existe ese CONTENT-TYPE" />
 	</bean>
+	
+	<bean id="setJSONBodyForJBPM" class=""/>
+
+	<!-- DEFINICION DE CONTEXTOS DE CAMEL -->
 
 	<camel:camelContext id="helloWorldContext">
 
@@ -62,9 +77,10 @@
 		</camel:onException>
 
 		<camel:route id="camelInsertMainRoute">
+
 			<camel:from
 				uri="cxfrs:bean?resourceClasses=com.smg.service.CamelInsertService&amp;bindingStyle=SimpleConsumer&amp;address={{http.address.path}}" />
-			<!-- <camel:process ref="myProcessor" /> -->
+
 			<camel:setHeader headerName="headerRouting">
 				<camel:simple>direct:${header.operationName}${header.CamelHttpMethod}</camel:simple>
 			</camel:setHeader>
@@ -73,14 +89,16 @@
 			<camel:routingSlip>
 				<camel:header>headerRouting</camel:header>
 			</camel:routingSlip>
+
+
+
 			<camel:log message="Finalizacion de ruta principal"></camel:log>
 		</camel:route>
-
-
 
 		<camel:route id="taskPOSTRoute">
 			<camel:from uri="direct:taskPOST" />
 
+			<!-- ESTO PODRÍA IR ARRIBA NO COMO RUTA DEL MÉTODO DEL SERVICIO -->
 			<camel:choice>
 				<camel:when>
 					<camel:simple>${in.header.content-type} == 'application/json'</camel:simple>
@@ -93,22 +111,59 @@
 				<camel:otherwise>
 					<camel:throwException ref="forcedExceptionBean" />
 				</camel:otherwise>
-
 			</camel:choice>
 
 			<!-- ABRO LA TRANSACCION, TODO DE AQUI PARA ABAJO ESTA DENTRO DE LA TX -->
-			<!-- <camel:transacted /> -->
+			<camel:transacted />
 
-			<camel:log message="Entro en la ruta hello world" />
-			<!-- <camel:process ref="processorInsertSQLStatement" /> <camel:to uri="sql:${header.CamelSqlQuery}?dataSource=sybase" 
-				/> <camel:process ref="processorSecondInsertSQLStatement" /> <camel:to uri="sql:${header.CamelSqlQuery}?dataSource=sybase" 
-				/> -->
-			<camel:process ref="myProcessor" />
+			<camel:log message="Ruta de invocacion por POST en el recurso TASK" />
 
-<!-- 			<camel:to uri="http://localhost:2121/smg/" /> -->
+			<camel:choice>
+				<camel:when>
+					<camel:simple>${property.mapBody[llamadoId]} == null</camel:simple>
+					<camel:log message="Invocando al processor de insercion de llamado"></camel:log>
+					<camel:process ref="insertLlamadoProcessor" />
+					<camel:to uri="direct:insertInSyBase" />
+					<camel:log message="Insercion de Llamado correctamente" />
+				</camel:when>
+			</camel:choice>
 
+			<!-- INSERTO EL WORKFLOW -->
+			<camel:process ref="insertWorkflowProcessor" />
+			<camel:to uri="direct:insertInSyBase" />
+
+			<camel:log message="Insercion de Workflow correctamente" />
+
+			<!-- INSERTO LA ETAPA -->
+			<camel:process ref="insertEtapasProcessor" />
+			<camel:to uri="direct:insertInSyBase" />
+
+			<camel:log message="Insercion de Etapa correctamente" />
+
+			<!-- INSERTO LA ETAPA MAX -->
+			<camel:process ref="insertEtapasMaxProcessor" />
+			<camel:to uri="direct:insertInSyBase" />
+
+			<camel:log message="Insercion de EtapaMaxcorrectamente" />
+
+			<camel:process ref="setJSONBodyForJBPM"/>
+			
+			<setHeader headerName="CamelHttpMethod">
+				<constant>POST</constant>
+			</setHeader>
+			<setHeader headerName="Content-Type">
+				<constant>application/json</constant>
+			</setHeader>
+			<setHeader headerName="CamelAcceptContentType">
+				<constant>application/json</constant>
+			</setHeader>
+			
+			<camel:to uri="http://192.168.105.145/ws.jbpm-proxy/app/main/task/start/key" />
 
 			<camel:to uri="mock:returnHello" />
+
+			<camel:log message="Todos los insert fueron correctamente ejecutados" />
+
 		</camel:route>
 
 		<camel:route id="routeProcessJSON">
@@ -116,19 +171,22 @@
 			<camel:unmarshal>
 				<camel:json library="Jackson" unmarshalTypeName="java.util.Map" />
 			</camel:unmarshal>
-			<camel:setProperty propertyName="jsonBody">
+			<camel:setProperty propertyName="mapBody">
 				<camel:simple>${in.body}</camel:simple>
 			</camel:setProperty>
 		</camel:route>
 
 		<camel:route id="routeprocessXML">
 			<camel:from uri="direct:processXMLPayload" />
-			<camel:process ref="xStreamProcessor" />
+			<camel:process ref="xmlBodyProcessor" />
 		</camel:route>
 
 
+		<camel:route id="insertInSybaseRoute">
+			<camel:from uri="direct:insertInSyBase" />
+			<camel:to uri="sql:${header.CamelSqlQuery}?dataSource=sybase" />
+		</camel:route>
+
 	</camel:camelContext>
-	
-	<bean id="xStreamProcessor" class="com.smg.camel.processor.XStreamProcessor"/>
 
 </beans>
