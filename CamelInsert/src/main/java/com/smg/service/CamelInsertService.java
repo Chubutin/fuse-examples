@@ -12,18 +12,17 @@ public interface CamelInsertService {
 
 	@POST
 	@Produces("application/json")
-	@Consumes(value = {"application/json","application/xml"})
-	Object task(String body, @HeaderParam(value = "headerName") String headerName);
-	
+	@Consumes(value = { "application/json", "application/xml" })
+	Object task(String body, @HeaderParam(value = "headerName") String headerName)
+			throws RuntimeException;
+
 	@GET
 	@Path("/{name}")
 	@Produces("application/json")
-	Object task();
-	
-	
+	Object task() throws RuntimeException;
+
 	@GET
 	@Produces("application/json")
-	Object taskTest();
-	
+	Object taskTest() throws RuntimeException;
 
 }

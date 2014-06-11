@@ -17,8 +17,6 @@
     http://camel.apache.org/schema/spring http://camel.apache.org/schema/spring/camel-spring.xsd">
 
 
-
-
 	<cxf:rsServer id="rsServer" address="${http.address.path}"
 		loggingFeatureEnabled="true" loggingSizeLimit="20" skipFaultLogging="true">
 		<cxf:providers>

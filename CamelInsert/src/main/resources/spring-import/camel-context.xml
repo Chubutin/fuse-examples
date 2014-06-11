@@ -105,7 +105,7 @@
 
 			<!-- PROCESSOR DE DECISION -->
 
-			<camel:process ref="brmsDecisionProcessor" />
+			<camel:process ref="brmsService" />
 
 			<camel:choice>
 				<camel:when>

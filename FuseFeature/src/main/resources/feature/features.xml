@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<features>
+	<feature name='smg-feature-addons' version='1.0.0-SNAPSHOT'>
+
+		<!-- FEATURES -->
+		<!-- <feature version="2.12.0.redhat-610379">camel-twitter</feature> <feature 
+			version="2.3.0.redhat-60024">webconsole</feature> <feature version="5.8.0.redhat-60024">activemq-camel</feature> 
+			<feature version="5.8.0.redhat-60024">activemq-web-console</feature> <bundle>mvn:commons-dbcp/commons-dbcp/1.4</bundle> -->
+
+
+		<feature version="2.12.0.redhat-610379">camel-sql</feature>
+		<feature>camel-jackson</feature>
+
+		<bundle><![CDATA[wrap:mvn:com.sybase/jconn3/6.0.26732]]></bundle>
+
+		<bundle><![CDATA[wrap:mvn:com.googlecode.json-simple/json-simple/1.1]]></bundle>
+
+		<!-- BUNDLES PARA JACKSON Y SERIALIZACION DE JSON -->
+		<bundle>mvn:org.codehaus.jackson/jackson-core-asl/1.9.0</bundle>
+		<bundle>mvn:org.codehaus.jackson/jackson-mapper-asl/1.9.0</bundle>
+		<bundle>mvn:org.codehaus.jackson/jackson-jaxrs/1.9.0</bundle>
+		<bundle>mvn:org.codehaus.jackson/jackson-xc/1.9.0</bundle>
+
+		<bundle>mvn:com.fasterxml.jackson.jaxrs/jackson-jaxrs-json-provider/2.4.0
+		</bundle>
+		<bundle>mvn:com.fasterxml.jackson.core/jackson-annotations/2.4.0
+		</bundle>
+		<bundle>mvn:com.fasterxml.jackson.jaxrs/jackson-jaxrs-json-provider/2.4.0
+		</bundle>
+		<bundle>mvn:com.fasterxml.jackson.core/jackson-core/2.4.0</bundle>
+		<bundle>mvn:com.fasterxml.jackson.core/jackson-databind/2.4.0</bundle>
+		<bundle>mvn:com.fasterxml.jackson.jaxrs/jackson-jaxrs-base/2.4.0
+		</bundle>
+
+
+
+	</feature>
+
+</features>

@@ -1,0 +1,50 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<developers>
+		<developer>
+			<id>Chubutin</id>
+			<name>Ramiro Pugh</name>
+		</developer>
+	</developers>
+
+	<groupId>com.smg.esb</groupId>
+	<artifactId>SMG-ESB-Features</artifactId>
+	<version>1.0.0</version>
+	
+	<name>ESB Features</name>
+	<description>Features a instalar en Fuse antes del deploy de Artefactos</description>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>2.0.2</version>
+				<configuration>
+					<source>1.7</source>
+					<target>1.7</target>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.karaf.tooling</groupId>
+				<artifactId>features-maven-plugin</artifactId>
+				<version>2.2.11</version>
+				<executions>
+					<execution>
+						<id>create-kar</id>
+						<goals>
+							<goal>create-kar</goal>
+						</goals>
+						<configuration>
+							<featuresFile>src/main/resources/feature/features.xml</featuresFile>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
+
+
+</project>

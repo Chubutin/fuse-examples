@@ -29,5 +29,7 @@
 	<bean id="sgmConsultaService"
 		class="com.smg.esb.bo.service.consulta.impl.ConsultaServiceImpl" />
 
+	<bean id="brmsService" class="com.smg.esb.bo.service.brms.impl.BRMSServiceImpl" />
+
 
 </beans>

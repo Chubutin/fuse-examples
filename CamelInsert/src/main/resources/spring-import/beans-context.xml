@@ -22,13 +22,13 @@
 		class="org.springframework.jdbc.datasource.SimpleDriverDataSource">
 		<property name="driverClass" value="com.sybase.jdbc3.jdbc.SybDriver" />
 		<property name="url" value="jdbc:sybase:Tds:11.0.1.84:4100/crm_smg" />
-		<property name="username" value="crm_app" />
+		<property name="username" value="${db.username}" />
 		<property name="password" value="sybaseep" />
 	</bean>
 
 	<!-- COMPONENTE SQL DE CAMEL -->
 
-	<bean id="mysql" class="org.apache.camel.component.sql.SqlComponent">
+	<bean id="camelSql" class="org.apache.camel.component.sql.SqlComponent">
 		<property name="dataSource" ref="sybase" />
 	</bean>
 

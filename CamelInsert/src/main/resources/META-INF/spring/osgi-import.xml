@@ -21,8 +21,7 @@
     http://www.springframework.org/schema/osgi http://www.springframework.org/schema/osgi/spring-osgi.xsd
     http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
 
-	<osgix:cm-properties id="properties" persistent-id="com.smg.esb.service">
-	</osgix:cm-properties>
+	<osgix:cm-properties id="properties" persistent-id="com.smg.esb.service"/>
 
 	<context:property-placeholder
 		properties-ref="properties" />
@@ -33,6 +32,9 @@
 	<!-- http://docs.spring.io/osgi/docs/2.0.0.M1/reference/html/service-registry.html -->
 	<osgi:reference id="sgmConsultaService"
 		interface="com.smg.esb.bo.service.consulta.ConsultaService" />
+	
+	<osgi:reference id="brmsService"
+		interface="com.smg.esb.bo.service.brms.BRMSService" />
 
 
 </beans>

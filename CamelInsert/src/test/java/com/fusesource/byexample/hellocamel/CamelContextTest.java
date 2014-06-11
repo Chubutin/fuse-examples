@@ -91,5 +91,5 @@ public class CamelContextTest {
 
 		mockEndpoint.assertIsSatisfied(100);
 	}
-
+	
 }
